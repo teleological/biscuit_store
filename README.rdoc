@@ -1,0 +1,42 @@
+= biscuit_store
+
+ActionDispatch's CookieStore uses Ruby's native Marshal module to
+serialize the details of a session. But sometimes, particularly when
+consuming cookies outside of Ruby, a different serializer is needed.
+
+BiscuitStore is a CookieStore replacement that allows you to override
+the :digest and :serializer options used to encode the session.
+
+The :serializer option defaults to the Marshal module. See
+ActiveSupport::MessageVerifier for details about the serializer interface.
+
+The :digest option is used with OpenSSL::Digest and defaults to 'SHA1'.
+
+BiscuitStore includes MessagePackSerializer and MarshalSerializer.
+To use the MessagePackSerializer, MessagePack must be loaded or
+autoloadable. If MessagePackSerializer cannot deserialize a cookie
+as is the case if the cookie was not serialized by MessagePack, a
+warning is logged and the cookie is ignored.
+
+Note that MessagePack is unable to serialize or deserialize objects
+of arbitrary classes. MessagePackSerializer includes special handling
+for ActionDispatch::Flash::FlashHash, but does not support other
+classes beyond those which are supported by MessagePack.
+
+MarshalSerializer uses Marshal and logs an error and ignores
+a cookie in the case that the cookie cannot be deserialized. The
+default behavior for CookieStore is to raise a TypeError when a
+cookie cannot be deserialized.
+
+== Example
+  
+  Widgets::Application.config.session_store :biscuit_store,
+    serializer: BiscuitStore::MessagePackSerializer,
+    key:        '_widgets_session'
+  
+
+== Copyright
+
+Copyright (c) 2012 Riley Lynch, Teleological Software, LLC.
+See LICENSE.txt for further details.
+
